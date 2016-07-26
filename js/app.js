@@ -7,6 +7,10 @@ $(function(){
     equals: null,
     cNum: null,
     oNum: null,
+    aCheck: function(){
+      if(this.operator && this.cNum && this.oNum) return true;
+      return false;
+    },
     opCheck: function(){
       if(!this.operator && this.cNum) return true;
       return false;
@@ -16,11 +20,11 @@ $(function(){
       return false;
     },
     cCheck: function(){
-      if(this.cNum) return true;
+      if(this.cNum && !this.operator && !this.oNum) return true;
       return false;
     },
     oCheck: function(){
-      if(this.oNum) return true;
+      if(this.operator && this.oNum) return true;
       return false;
     },
     calculate: function(operator){
@@ -54,7 +58,7 @@ $(function(){
   }
 
   //OPERATOR BUTTONS
-  calculator.oButtons = $("span.operator[id!='equals']");
+  calculator.oButtons = $("span.operator").not("span#equals").not("span#clear");
   calculator.oButtons.on("click", function(){
     $this = $(this);
     var opCheck = calculator.opCheck();
@@ -71,22 +75,55 @@ $(function(){
     if(eCheck) calculator.calculate();
   });
 
+  //CLEAR BUTTONS
+  calculator.clear = $("#clear");
+  calculator.clear.on("click", function(){
+    calculator.cNum = calculator.oNum = calculator.operator = null;
+    calculator.screen.html("");
+  })
+
   //NUMBER BUTTONS
   calculator.nButtons = $(".buttons span[class!='operator']");
   calculator.nButtons.on("click", function(){
     $this = $(this);
-    var cCheck = calculator.cCheck();
-    if(cCheck){
-      oCheck = calculator.oCheck();
-      if(!oCheck){
-        var value = calculator.oNum = $this.text();
-        calculator.screen.append(value);
-      }
+    var num = $this.text().toString();
+    var aCheck = calculator.aCheck(); //this.operator && this.cNum && this.oNum
+    if(aCheck){
+      //APPEND TO LAST NUMBER
+      calculator.oNum += num;
+      calculator.screen.text(calculator.oNum);
     } else {
-      var value = calculator.cNum = $this.text();
-      calculator.screen.html(value);
+      var cCheck = calculator.cCheck(); //this.cNum && !this.operator && !this.oNum
+      if(cCheck){
+        //APPEND TO FIRST NUMBER
+        calculator.cNum += num;
+        calculator.screen.text(calculator.cNum);
+      } else {
+        if(!calculator.cNum){
+          //ADD FIRST NUMBER
+          calculator.cNum = num;
+          calculator.screen.text(calculator.cNum);
+        } else {
+          //CHECK FOR SECOND NUMBER
+          oCheck = calculator.oCheck(); //this.operator && this.oNum
+          if(oCheck){
+            //ADD SECOND NUMBER
+            calculator.oNum += num;
+            calculator.screen.text(calculator.oNum);
+          } else {
+            if(calculator.oNum){
+              //APPEND TO SECOND NUMBER
+              calculator.oNum += num;
+              calculator.screen.text(calculator.oNum);
+            } else {
+              //ADD SECOND NUMBER
+              calculator.oNum = num;
+              calculator.screen.text(calculator.oNum);
+            }
+          }
+        }
+      }
     }
   });
-
   calculator.screen = $("#screen");
 })
